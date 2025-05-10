@@ -29,7 +29,7 @@ Game::Game(const int width, const int height, const int numObjects, const int fl
 	minFPS = std::numeric_limits<float>::infinity();
 	maxFPS = 0;
 
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 	// Board init
 	for (int i = 0; i < numObjects; i++) {	// Adding test objects
 		
@@ -95,6 +95,9 @@ int Game::handleEvents() {
 	switch (event.type) {
 	case SDL_QUIT:
 		running = false;
+		break;
+	case SDL_MOUSEBUTTONDOWN:
+		createCircle((float)event.button.x, (float)event.button.y, 5);
 		break;
 	default:
 		break;
@@ -482,4 +485,19 @@ void Game::setColliderColor(unsigned char r, unsigned char g, unsigned char b, u
 
 bool Game::isRunning() {
 	return running;
+}
+
+size_t Game::createCircle(float x, float y, float radius)
+{
+	Object* newObject = new Object(x, y, radius, id_count++);
+	// Adding colliders
+	if (FLAG_IS_SET(BRUTE_FORCE_AABB) ||
+		FLAG_IS_SET(SWEEP_AND_PRUNE_AABB) ||
+		FLAG_IS_SET(UNIFORM_GRID_AABB) ||
+		FLAG_IS_SET(VARIANCE_SWEEP_AND_PRUNE_AABB)) {
+		newObject->createAABB();
+	}
+
+	objects.push_back(newObject);
+	return newObject->id;
 }

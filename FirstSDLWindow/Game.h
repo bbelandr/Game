@@ -31,6 +31,7 @@ public:
 	void setBackgroundColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 	void setColliderColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 	bool isRunning();
+	size_t createCircle(float x, float y, float radius);	// returns the id of the object that was created
 	size_t totalFrames;
 	double totalRuntime;						// Stored in seconds
 
