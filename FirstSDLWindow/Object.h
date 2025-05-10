@@ -28,8 +28,15 @@ struct vector {		// 2D collection of X and Y values
 	vector operator* (const float& in) {
 		return vector(x * in, y * in);
 	}
+	vector operator/ (const vector& in) {
+		return vector(x / in.x, y / in.y);
+	}
 	float dot(const vector& in) {	// Dot product
 		return x * in.x + y * in.y;
+	}
+	float comparitiveDistance(const vector& in) {	// Do not use this if you are looking for the actual distance between two points
+		vector diff = *this - in;
+		return diff.dot(diff);
 	}
 };
 

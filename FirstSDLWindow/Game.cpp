@@ -29,8 +29,10 @@ Game::Game(const int width, const int height, const int numObjects, const int fl
 	minFPS = std::numeric_limits<float>::infinity();
 	maxFPS = 0;
 
+	srand(time(NULL));
 	// Board init
 	for (int i = 0; i < numObjects; i++) {	// Adding test objects
+		
 		Object* test = new Object(float(rand() % windowWidth), float(rand() % windowHeight), 5, id_count);
 		id_count += 1;
 		test->acc.x = (float)(rand() % 100 + 1) / 20;
@@ -113,14 +115,16 @@ void Game::handleCollision(Object& a, Object& b) {	// Supposedly, a collision wi
 	}
 
 	// Nonstatic Collision
-	vector newVelocityA, newVelocityB;
+	a.isStatic = true;
+	b.isStatic = true;
+	/*vector newVelocityA, newVelocityB;
 	newVelocityB.x = (2 * a.mass * a.vel.x + b.mass * b.vel.x - a.mass * b.vel.x) / (a.mass + b.mass);
 	newVelocityB.y = (2 * a.mass * a.vel.y + b.mass * b.vel.y - a.mass * b.vel.y) / (a.mass + b.mass);
 	newVelocityA.x = b.vel.x + newVelocityB.x - a.vel.x;
 	newVelocityA.y = b.vel.y + newVelocityB.y - a.vel.y;
 
 	a.vel = newVelocityA;
-	b.vel = newVelocityB;
+	b.vel = newVelocityB;*/
 	return;
 }
 
@@ -153,8 +157,8 @@ int Game::update() {
 	totalFrames++;
 	countedFrames++;	// This isn't efficient
 	totalRuntime += deltaTime;
-	if (totalRuntime >= 60.0) {
-		running = false;
+	if (totalRuntime >= 30.0) {
+		//running = false;
 	}
 	fpsTimer += deltaTime;
 	if (fpsTimer >= 0.5) {
@@ -232,6 +236,28 @@ int Game::update() {
 		//	std::cout << objects[i]->AABB->min().x << std::endl;
 		//}
 		for (size_t i = 0; i < objects.size(); i++) {
+			auto leftObj = objects[(i - 1) % objects.size()];
+			auto rightObj = objects[(i + 1) % objects.size()];
+			auto leftDist = leftObj->pos - objects[i]->pos;
+			auto rightDist = rightObj->pos - objects[i]->pos;
+			if (leftObj->isStatic) rightDist = rightDist * 2;
+			if (rightObj->isStatic) leftDist = leftDist * 2;
+
+
+			vector overall = leftDist + rightDist;
+			objects[i]->acc = overall + vector(0, 0);
+
+
+			/*vector left = objects[(i - 1) % objects.size()]->pos;
+			vector right = objects[(i + 1) % objects.size()]->pos;
+			if (objects[i]->pos.comparitiveDistance(left) > objects[i]->pos.comparitiveDistance(right)) {
+				objects[i]->acc = right - objects[i]->pos;
+			}
+			else {
+				objects[i]->acc = left - objects[i]->pos;
+			}*/
+
+
 			if (FLAG_IS_SET(VARIANCE_SWEEP_AND_PRUNE_AABB)) {	// Recording the maximums and minimums for the calculation of variance
 				if (objects[i]->AABB->max().x > maxX) maxX = objects[i]->AABB->max().x;
 				if (objects[i]->AABB->min().x < minX) minX = objects[i]->AABB->min().x;
@@ -403,6 +429,9 @@ int Game::render() {
 		if (DEBUG_RENDERER & flags) printf("\t\tColor = (%d, %d, %d, %d)\n", objects[i]->color.r, objects[i]->color.g, objects[i]->color.b, objects[i]->color.a);
 		if (DEBUG_RENDERER & flags) printf("\t\tCoordinate = (%f, %f)\n", objects[i]->pos.x, objects[i]->pos.y);
 		if (FLAG_IS_SET(DEBUG_RENDERER | BRUTE_FORCE_AABB)) printf("\t\tCoordinateAABB = (%f, %f)\n", objects[i]->AABB->center->x, objects[i]->AABB->center->y);
+		if (!objects[i]->isVisible) {
+			continue;
+		}
 		if (objects[i]->isCircle) {	// Is the object just a point or a circle?
 			// Draw circle
 			SDL_SetRenderDrawColor(renderer, objects[i]->color.r, objects[i]->color.g, objects[i]->color.b, objects[i]->color.a);
